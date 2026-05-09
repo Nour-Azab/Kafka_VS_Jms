@@ -34,9 +34,9 @@ public class App {
         List<Long> latencies = new ArrayList<>();
 
         int count = 0;
-        long medianResponseTime = 0;
+        List<Long> ResponseTimes = new ArrayList<>();
 
-        while (count < 1000) {
+        while (count < 10000) {
 
             long startTime = System.currentTimeMillis();
 
@@ -44,7 +44,7 @@ public class App {
 
             long responseTime = System.currentTimeMillis() - startTime;
 
-            medianResponseTime += responseTime;
+            ResponseTimes.add(responseTime);
 
             if (msg != null) {
 
@@ -71,14 +71,15 @@ public class App {
         Collections.sort(latencies);
 
 
-        System.out.println("Median Response Time: " + medianResponseTime / 1000 + " ms");
+        Collections.sort(ResponseTimes);
+        System.out.println("Median Response Time: " + ResponseTimes.get(5000) + " ms");
         System.out.println(
                 "Latency percentiles: 50th = "
-                        + latencies.get(500)
+                        + latencies.get(5000)
                         + " ms, 95th = "
-                        + latencies.get(950)
+                        + latencies.get(9500)
                         + " ms, 99th = "
-                        + latencies.get(990)
+                        + latencies.get(9900)
                         + " ms, " + "Messages received: " + count);
 
         consumer.close();

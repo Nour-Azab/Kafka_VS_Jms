@@ -28,12 +28,12 @@ public class App {
 
         List<Long> latencies = new ArrayList<>();
         int count = 0;
-        long medianResponseTime = 0;
+        List<Long> ResponseTimes = new ArrayList<>();
         while (count < 10000) {
             long startTime = System.currentTimeMillis();
             ConsumerRecords<String, String> records = consumer.poll(Duration.ofSeconds(1));
             long responseTime = System.currentTimeMillis() - startTime;
-            medianResponseTime += responseTime;
+            ResponseTimes.add(responseTime);
 
             for (ConsumerRecord<String, String> record : records) {
                 String value = record.value();
@@ -48,9 +48,10 @@ public class App {
         }
 
         Collections.sort(latencies);
-        System.out.println("Latency percentiles: 50th = " + latencies.get(500) + " ms, 95th = " + latencies.get(950)
-                + " ms, 99th = " + latencies.get(990) + " ms, " + "Messages received: " + count);
-        System.out.println("Median Response Time: " + medianResponseTime / 1000 + " ms");
+        System.out.println("Latency percentiles: 50th = " + latencies.get(5000) + " ms, 95th = " + latencies.get(9500)
+                + " ms, 99th = " + latencies.get(9900) + " ms, " + "Messages received: " + count);
+        Collections.sort(ResponseTimes);
+        System.out.println("Median Response Time: " + ResponseTimes.get(5000) + " ms");
         consumer.close();
     }
 }

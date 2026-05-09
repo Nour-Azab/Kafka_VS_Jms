@@ -7,10 +7,16 @@ import jakarta.jms.Queue;
 import jakarta.jms.Session;
 import jakarta.jms.TextMessage;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Properties;
+
 import org.apache.activemq.ActiveMQConnectionFactory;
 
 public class App {
-    public static void main(String[] args) throws Exception {
+
+    void calculateResponseTime() throws Exception {
 
         String brokerURL = "tcp://localhost:61616";
 
@@ -28,9 +34,9 @@ public class App {
 
         producer.setDeliveryMode(DeliveryMode.PERSISTENT);
         
-        long medianResponseTime = 0;
+        List<Long> ResponseTimes = new ArrayList<>();
 
-        for (int i = 0; i < 1000; i++) {
+        for (int i = 0; i < 10000; i++) {
 
             long timestamp = System.currentTimeMillis();
 
@@ -44,16 +50,57 @@ public class App {
 
             long responseTime = System.currentTimeMillis() - startTime;
 
-            medianResponseTime += responseTime;
+            ResponseTimes.add(responseTime);
 
-            System.out.println("Response Time of msg " + i +
-                    ": " + responseTime + " ms");
+           // System.out.println("Response Time of msg " + i +": " + responseTime + " ms");
         }
-        medianResponseTime /= 1000;
-        System.out.println("Median Response Time: " + medianResponseTime + " ms");
+        Collections.sort(ResponseTimes);
+        System.out.println("Median Response Time: " + ResponseTimes.get(500) + " ms");
 
         producer.close();
         session.close();
         connection.close();
+    }
+
+    void calculateThroughput(long messageCount) throws Exception {
+        String brokerURL = "tcp://localhost:61616";
+
+        ActiveMQConnectionFactory factory =
+                new ActiveMQConnectionFactory(brokerURL);
+
+        Connection connection = factory.createConnection();
+        connection.start();
+
+        Session session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
+
+        Queue queue = session.createQueue("lab-topic");
+
+        MessageProducer producer = session.createProducer(queue);
+
+        producer.setDeliveryMode(DeliveryMode.PERSISTENT);
+        long startTime = System.currentTimeMillis();
+        for (int i = 0; i < messageCount; i++) {
+            long timeStamp = System.currentTimeMillis();
+            if(timeStamp - startTime > 1000) {
+                break;
+            }
+            String payload = timeStamp + "|" + "K".repeat(988);
+            TextMessage message = session.createTextMessage(payload);
+            producer.send(message);
+        }
+        producer.close();
+        session.close();
+        connection.close();
+
+    }
+
+    public static void main(String[] args) throws Exception {
+        App app = new App();
+        /*for (int i = 0; i < 1000; i++) {
+            app.calculateResponseTime();
+        }*/
+        app.calculateResponseTime();
+        //app.calculateThroughput(1000);
+
     }
 }
